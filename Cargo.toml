@@ -1,0 +1,18 @@
+[package]
+name = "rust-contract-template"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "contract"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
+
+[dependencies]
+polkavm-derive = { version = "0.14.0" }
+uapi = { package = "pallet-revive-uapi", git = "https://github.com/paritytech/polkadot-sdk.git", rev = "1f381f606033f3ae67c86dbe57bbb94c96dc3092", default-features = false }
