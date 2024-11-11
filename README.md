@@ -11,6 +11,8 @@ In terms of code, this template is very bare bones. `main.rs` is just a few line
 deal with compiling the code to PolkaVM in a `rust-analyzer`-friendly way. We included a `rust-toolchain.toml` and a
 `.cargo/config.toml` so that all tools automatically select the correct target and toolchain (we need a relatively new `nightly`).
 
+The `call_from_sol.sol` file demonstrates how to call the example in `main.rs` from Solidity.
+
 ## Memory Allocation
 
 The contract depends on the `pallet-revive-uapi` crate, which is a thin (but safe) wrapper around all available host functions. It only

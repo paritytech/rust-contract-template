@@ -28,12 +28,27 @@ pub extern "C" fn call() {
     // it will trap if the buffer is smaller than the input
     api::input(&mut input);
 
-    // the reference is resized to the actual length
-    let input_len = input.len() as u32;
+    // the actual 4 byte integer is stored at offset 32
+    // 4 byte selector
+    // 28 byte padding as every integer is padded to be 32 byte
+    let n = u32::from_be_bytes((&input[32..]).try_into().unwrap());
 
-    // emitting a log is helpful for debugging
-    api::deposit_event(&[], input);
+    let result = fibonacci(n);
 
-    // return the length to the caller
-    api::return_value(ReturnFlags::empty(), &input_len.to_be_bytes());
+    // pad the result to 32 byte
+    let mut output = [0u8; 32];
+    output[28..].copy_from_slice(&result.to_be_bytes());
+
+    // returning without calling this function leaves the output buffer empty
+    api::return_value(ReturnFlags::empty(), &output);
+}
+
+fn fibonacci(n: u32) -> u32 {
+    if n == 0 {
+        0
+    } else if n == 1 {
+        1
+    } else {
+        fibonacci(n - 1) + fibonacci(n - 2)
+    }
 }
