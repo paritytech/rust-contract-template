@@ -14,5 +14,5 @@ lto = "fat"
 codegen-units = 1
 
 [dependencies]
-polkavm-derive = { version = "0.14.0" }
-uapi = { package = "pallet-revive-uapi", git = "https://github.com/paritytech/polkadot-sdk.git", rev = "1f381f606033f3ae67c86dbe57bbb94c96dc3092", default-features = false }
+polkavm-derive = { version = "0.17.0" }
+uapi = { package = "pallet-revive-uapi", git = "https://github.com/paritytech/polkadot-sdk.git", rev = "3d8da815ecd12b8f04daf87d6ffba5ec4a181806", default-features = false }
