@@ -26,8 +26,8 @@ You can build this project with `cargo build`. However, to generate a valid cont
 ELF file outputted by the Rust compiler and transforming it into a PolkaVM module.
 
 ```sh
-# This makes sure that polkatool is on the newest version
-$ cargo install polkatool
+# This makes sure that polkatool is on a version compatible with Westend AssetHub
+$ cargo install polkatool --version ^0.17
 
 # This will build the project and then use polkatool to link it
 $ ./build.sh
