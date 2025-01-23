@@ -9,11 +9,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "pallet-revive-proc-macro"
+version = "0.1.0"
+source = "git+https://github.com/paritytech/polkadot-sdk.git?rev=d62a90c8c729acd98c7e9a5cab9803b8b211ffc5#d62a90c8c729acd98c7e9a5cab9803b8b211ffc5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "pallet-revive-uapi"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?rev=3d8da815ecd12b8f04daf87d6ffba5ec4a181806#3d8da815ecd12b8f04daf87d6ffba5ec4a181806"
+source = "git+https://github.com/paritytech/polkadot-sdk.git?rev=d62a90c8c729acd98c7e9a5cab9803b8b211ffc5#d62a90c8c729acd98c7e9a5cab9803b8b211ffc5"
 dependencies = [
  "bitflags",
+ "pallet-revive-proc-macro",
  "paste",
  "polkavm-derive",
 ]
