@@ -21,12 +21,11 @@ pub extern "C" fn deploy() {}
 #[no_mangle]
 #[polkavm_derive::polkavm_export]
 pub extern "C" fn call() {
-    let mut buffer: [u8; 512] = [0; 512];
-    let mut input = buffer.as_mut();
+    let mut input = [0u8; 36];
 
     // store input data into `buffer`
     // it will trap if the buffer is smaller than the input
-    api::input(&mut input);
+    api::call_data_copy(&mut input, 0);
 
     // the actual 4 byte integer is stored at offset 32
     // 4 byte selector

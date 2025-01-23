@@ -27,7 +27,7 @@ ELF file outputted by the Rust compiler and transforming it into a PolkaVM modul
 
 ```sh
 # This makes sure that polkatool is on a version compatible with Westend AssetHub
-$ cargo install polkatool --version ^0.17
+$ cargo install polkatool --version ^0.19
 
 # This will build the project and then use polkatool to link it
 $ ./build.sh
