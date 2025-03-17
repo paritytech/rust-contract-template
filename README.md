@@ -35,6 +35,30 @@ $ make
 
 **The build result is placed as `contract.polkavm` in the repository root. This is the final artifact that can be deployed as-is.**
 
+## How to Deploy and Call
+
+The easiest way, is to use [cast](https://getfoundry.sh) from the Foundry test-suite.
+
+```sh
+# Define the RPC URL (here we use a local node)
+export RPC_URL="http://localhost:8545"
+
+# Define the account that will use to call and deploy the contract
+export ETH_FROM=0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
+cast wallet import dev-account --private-key 5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133
+
+# Deploy the contract
+cast send --legacy --account evm-dev --create "$(xxd -p -c 99999 contract.polkavm)"
+
+# output
+# ...
+# contractAddress      0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3
+# ...
+
+# Call the contract
+cast call 0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3 "fibonnaci((uint)) view returns(uint)" "(4)"
+> 3
+
 ## How to Inspect the Contract
 
 ```sh

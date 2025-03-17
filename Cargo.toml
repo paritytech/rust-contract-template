@@ -20,6 +20,7 @@ polkavm-derive = { version = "0.19.0" }
 [dependencies.uapi]
 package = "pallet-revive-uapi"
 git = "https://github.com/paritytech/polkadot-sdk.git"
-rev = "d62a90c8c729acd98c7e9a5cab9803b8b211ffc5"
+rev = "38d2fa859861005157ccb249dca1378f015e0b06"
 default-features = false
 features = ["unstable-hostfn"]
+

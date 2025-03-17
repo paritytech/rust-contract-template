@@ -27,6 +27,15 @@ pub extern "C" fn call() {
     // it will trap if the buffer is smaller than the input
     api::call_data_copy(&mut input, 0);
 
+    // The input is abi encoded as follows:
+    // - 4 byte selector
+    // - 32 byte padded integer
+    //
+    // This can be verified by running the following command:
+    // ❯ cast calldata "fibonnaci((uint)) view returns(uint)" "(42)" | xxd -r -p | xxd -c 32
+    // 00000000: cf3f f527 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+    // 00000020: 0000 002a
+
     // the actual 4 byte integer is stored at offset 32
     // 4 byte selector
     // 28 byte padding as every integer is padded to be 32 byte

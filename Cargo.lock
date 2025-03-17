@@ -11,7 +11,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 [[package]]
 name = "pallet-revive-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?rev=d62a90c8c729acd98c7e9a5cab9803b8b211ffc5#d62a90c8c729acd98c7e9a5cab9803b8b211ffc5"
+source = "git+https://github.com/paritytech/polkadot-sdk.git?rev=38d2fa859861005157ccb249dca1378f015e0b06#38d2fa859861005157ccb249dca1378f015e0b06"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -21,12 +21,12 @@ dependencies = [
 [[package]]
 name = "pallet-revive-uapi"
 version = "0.1.0"
-source = "git+https://github.com/paritytech/polkadot-sdk.git?rev=d62a90c8c729acd98c7e9a5cab9803b8b211ffc5#d62a90c8c729acd98c7e9a5cab9803b8b211ffc5"
+source = "git+https://github.com/paritytech/polkadot-sdk.git?rev=38d2fa859861005157ccb249dca1378f015e0b06#38d2fa859861005157ccb249dca1378f015e0b06"
 dependencies = [
  "bitflags",
  "pallet-revive-proc-macro",
  "paste",
- "polkavm-derive",
+ "polkavm-derive 0.21.0",
 ]
 
 [[package]]
@@ -42,12 +42,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a972bd305ba8cbf0de79951d6d49d2abfad47c277596be5a2c6a0924a163abbd"
 
 [[package]]
+name = "polkavm-common"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c16b809cfd398f861261c045a8745e6c78b71ea7e0d3ef6f7cc553eb27bc17e"
+
+[[package]]
 name = "polkavm-derive"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8d866972a7532d82d05c26b4516563660dd6676d7ab9e64e681d8ef0e29255c"
 dependencies = [
- "polkavm-derive-impl-macro",
+ "polkavm-derive-impl-macro 0.19.0",
+]
+
+[[package]]
+name = "polkavm-derive"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47239245f87329541932c0d7fec750a66a75b13aa87dfe4fbfd637bab86ad387"
+dependencies = [
+ "polkavm-derive-impl-macro 0.21.0",
 ]
 
 [[package]]
@@ -56,7 +71,19 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5cffca9d51b21153395a192b65698457687bc51daa41026629895542ccaa65c2"
 dependencies = [
- "polkavm-common",
+ "polkavm-common 0.19.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "polkavm-derive-impl"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24fd6c6215450c3e57511df5c38a82eb4bde208de15ee15046ac33852f3c3eaa"
+dependencies = [
+ "polkavm-common 0.21.0",
  "proc-macro2",
  "quote",
  "syn",
@@ -68,7 +95,17 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc0dc0cf2e8f4d30874131eccfa36bdabd4a52cfb79c15f8630508abaf06a2a6"
 dependencies = [
- "polkavm-derive-impl",
+ "polkavm-derive-impl 0.19.0",
+ "syn",
+]
+
+[[package]]
+name = "polkavm-derive-impl-macro"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36837f6b7edfd6f4498f8d25d81da16cf03bd6992c3e56f3d477dfc90f4fefca"
+dependencies = [
+ "polkavm-derive-impl 0.21.0",
  "syn",
 ]
 
@@ -95,14 +132,14 @@ name = "rust-contract-template"
 version = "0.1.0"
 dependencies = [
  "pallet-revive-uapi",
- "polkavm-derive",
+ "polkavm-derive 0.19.0",
 ]
 
 [[package]]
 name = "syn"
-version = "2.0.96"
+version = "2.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5d0adab1ae378d7f53bdebc67a39f1f151407ef230f0ce2883572f5d8985c80"
+checksum = "b09a44accad81e1ba1cd74a32461ba89dee89095ba17b32f5d03683b1b1fc2a0"
 dependencies = [
  "proc-macro2",
  "quote",
