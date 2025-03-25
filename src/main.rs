@@ -24,8 +24,8 @@ pub extern "C" fn call() {
     // We want this contract to be called with the following ABI:
     // function fibonacci(uint32) external pure returns (uint32);
 
-    // ❯ cast calldata "fibonnaci((uint)) view returns(uint)" "(42)" | xxd -r -p | xxd -c 32 -g 1
-    //00000000: cf 3f f5 27 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    // ❯ cast calldata "fibonnaci(uint) view returns(uint)" "42" | xxd -r -p | xxd -c 32 -g 1
+    //00000000: 50 7a 10 34 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
     //00000020: 00 00 00 2a
 
     // The input is abi encoded as follows:
