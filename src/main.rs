@@ -36,6 +36,8 @@ pub extern "C" fn call() {
     let mut input = [0u8; 4];
     api::call_data_copy(&mut input, 32);
 
+    // Note for more complex input, sol! macro can be used to encod and decode input and output
+    // https://docs.rs/alloy-core/0.8.24/alloy_core/sol_types/macro.sol.html
     let n = u32::from_be_bytes(input);
     let result = fibonacci(n);
 
