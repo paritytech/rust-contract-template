@@ -56,7 +56,7 @@ cast send --legacy --account dev-account --rpc-url https://westend-asset-hub-eth
 # ...
 
 # Call the contract
-cast call 0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3 "fibonnaci((uint)) view returns(uint)" "(4)"
+cast call --rpc-url https://westend-asset-hub-eth-rpc.polkadot.io 0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3 "fibonnaci((uint)) view returns(uint)" "(4)"
 > 3
 
 ## How to Inspect the Contract
