@@ -41,14 +41,14 @@ The easiest way, is to use [cast](https://getfoundry.sh) from the Foundry test-s
 
 ```sh
 # Define the RPC URL (here we use a local node)
-export RPC_URL="http://localhost:8545"
+export RPC_URL="https://westend-asset-hub-eth-rpc.polkadot.io"
 
 # Define the account that will use to call and deploy the contract
 export ETH_FROM=0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
 cast wallet import dev-account --private-key 5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133
 
 # Deploy the contract
-cast send --legacy --account evm-dev --create "$(xxd -p -c 99999 contract.polkavm)"
+cast send --legacy --account dev-account --rpc-url https://westend-asset-hub-eth-rpc.polkadot.io --create "$(xxd -p -c 99999 contract.polkavm)"
 
 # output
 # ...
