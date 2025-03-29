@@ -21,26 +21,24 @@ pub extern "C" fn deploy() {}
 #[no_mangle]
 #[polkavm_derive::polkavm_export]
 pub extern "C" fn call() {
-    let mut input = [0u8; 36];
+    // We want this contract to be called with the following ABI:
+    // function fibonacci(uint32) external pure returns (uint32);
 
-    // store input data into `buffer`
-    // it will trap if the buffer is smaller than the input
-    api::call_data_copy(&mut input, 0);
+    // ❯ cast calldata "fibonnaci(uint) view returns(uint)" "42" | xxd -r -p | xxd -c 32 -g 1
+    //00000000: 50 7a 10 34 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+    //00000020: 00 00 00 2a
 
     // The input is abi encoded as follows:
     // - 4 byte selector
     // - 32 byte padded integer
-    //
-    // This can be verified by running the following command:
-    // ❯ cast calldata "fibonnaci((uint)) view returns(uint)" "(42)" | xxd -r -p | xxd -c 32
-    // 00000000: cf3f f527 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
-    // 00000020: 0000 002a
 
     // the actual 4 byte integer is stored at offset 32
-    // 4 byte selector
-    // 28 byte padding as every integer is padded to be 32 byte
-    let n = u32::from_be_bytes((&input[32..]).try_into().unwrap());
+    let mut input = [0u8; 4];
+    api::call_data_copy(&mut input, 32);
 
+    // Note for more complex input, sol! macro can be used to encod and decode input and output
+    // https://docs.rs/alloy-core/0.8.24/alloy_core/sol_types/macro.sol.html
+    let n = u32::from_be_bytes(input);
     let result = fibonacci(n);
 
     // pad the result to 32 byte

@@ -48,22 +48,39 @@ export ETH_FROM=0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
 cast wallet import dev-account --private-key 5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133
 
 # Deploy the contract
-cast send --legacy --account evm-dev --create "$(xxd -p -c 99999 contract.polkavm)"
+cast send --legacy --account dev-account --create "$(xxd -p -c 99999 contract.polkavm)"
 
 # output
 # ...
 # contractAddress      0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3
 # ...
 
+# or to get the address
+
+RUST_ADDRESS=$(cast send --legacy --account dev-account --create "$(xxd -p -c 99999 contract.polkavm)" --json | jq -r .contractAddress)
+
 # Call the contract
-cast call 0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3 "fibonnaci((uint)) view returns(uint)" "(4)"
-> 3
+cast call $RUST_ADDRESS "fibonacci(uint32) public pure returns (uint32)" "4"
+
+# Build the solidity contract
+npx @parity/revive@latest --bin call_from_sol.sol
+
+# Deploy the solidity contract
+SOL_ADDRESS=$(cast send --legacy --account dev-account --create "$(xxd -p -c 99999 call_from_sol_sol_CallRust.polkavm)" --json | jq -r .contractAddress)
+
+# Compare the gas estimates
+cast estimate $RUST_ADDRESS "fibonacci(uint32) public pure returns (uint32)" 4
+cast estimate $SOL_ADDRESS "fibonacci(uint32) public pure returns (uint32)" 4
+
+# Call the rust contract from solidity
+cast call $SOL_ADDRESS "fibonacciRust(uint32, address) external pure returns (uint32)" 4 $RUST_ADDRESS
+```
 
 ## How to Inspect the Contract
 
 ```sh
-$ polkatool stats contract.polkavm
-$ polkatool disassemble contract.polkavm
+polkatool stats contract.polkavm
+polkatool disassemble contract.polkavm
 ```
 
 ## Examples
