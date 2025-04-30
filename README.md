@@ -40,15 +40,16 @@ $ make
 The easiest way, is to use [cast](https://getfoundry.sh) from the Foundry test-suite.
 
 ```sh
-# Define the RPC URL (here we use a local node)
-export RPC_URL="http://localhost:8545"
+# Define the RPC URL (default to http://localhost:8545)
+export ETH_RPC_URL="https://westend-asset-hub-eth-rpc.polkadot.io"
 
 # Define the account that will use to call and deploy the contract
+# Make sure to fund the account with some tokens (e.g. using the faucet https://contracts.polkadot.io/connect-to-asset-hub)
 export ETH_FROM=0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
 cast wallet import dev-account --private-key 5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133
 
 # Deploy the contract
-cast send --legacy --account dev-account --create "$(xxd -p -c 99999 contract.polkavm)"
+cast send --account evm-dev --create "$(xxd -p -c 99999 contract.polkavm)"
 
 # output
 # ...
@@ -57,7 +58,7 @@ cast send --legacy --account dev-account --create "$(xxd -p -c 99999 contract.po
 
 # or to get the address
 
-RUST_ADDRESS=$(cast send --legacy --account dev-account --create "$(xxd -p -c 99999 contract.polkavm)" --json | jq -r .contractAddress)
+RUST_ADDRESS=$(cast send --account dev-account --create "$(xxd -p -c 99999 contract.polkavm)" --json | jq -r .contractAddress)
 
 # Call the contract
 cast call $RUST_ADDRESS "fibonacci(uint32) public pure returns (uint32)" "4"
@@ -66,7 +67,7 @@ cast call $RUST_ADDRESS "fibonacci(uint32) public pure returns (uint32)" "4"
 npx @parity/revive@latest --bin call_from_sol.sol
 
 # Deploy the solidity contract
-SOL_ADDRESS=$(cast send --legacy --account dev-account --create "$(xxd -p -c 99999 call_from_sol_sol_CallRust.polkavm)" --json | jq -r .contractAddress)
+SOL_ADDRESS=$(cast send --account dev-account --create "$(xxd -p -c 99999 call_from_sol_sol_CallRust.polkavm)" --json | jq -r .contractAddress)
 
 # Compare the gas estimates
 cast estimate $RUST_ADDRESS "fibonacci(uint32) public pure returns (uint32)" 4
