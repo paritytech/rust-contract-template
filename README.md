@@ -49,7 +49,7 @@ export ETH_FROM=0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
 cast wallet import dev-account --private-key 5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133
 
 # Deploy the contract
-cast send --account evm-dev --create "$(xxd -p -c 99999 contract.polkavm)"
+cast send --account dev-account --create "$(xxd -p -c 99999 contract.polkavm)"
 
 # output
 # ...
