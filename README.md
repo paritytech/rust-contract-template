@@ -8,8 +8,8 @@ code is written in C.
 ## Components
 
 In terms of code, this template is very bare bones. `main.rs` is just a few lines of code. Most of the files in this repo
-deal with compiling the code to PolkaVM in a `rust-analyzer`-friendly way. We included a `rust-toolchain.toml` and a
-`.cargo/config.toml` so that all tools automatically select the correct target and toolchain (we need a relatively new `nightly`).
+deal with compiling the code to PolkaVM in a `rust-analyzer`-friendly way. We included a `.cargo/config.toml` so that all
+tools automatically select the correct target.
 
 The `call_from_sol.sol` file demonstrates how to call the example in `main.rs` from Solidity.
 
