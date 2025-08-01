@@ -13,6 +13,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Add rust-src component
+      run: rustup component add rust-src
     - name: Install Polkatool
       run: cargo install polkatool --version 0.26.0
     - uses: actions/checkout@v4
