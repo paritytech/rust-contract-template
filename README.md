@@ -46,7 +46,7 @@ export ETH_RPC_URL="https://westend-asset-hub-eth-rpc.polkadot.io"
 # Define the account that will use to call and deploy the contract
 # Make sure to fund the account with some tokens (e.g. using the faucet https://contracts.polkadot.io/connect-to-asset-hub)
 export ETH_FROM=0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
-cast wallet import dev-account --private-key 5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133
+cast wallet import evm-dev --private-key 5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133
 
 # Deploy the contract
 cast send --account evm-dev --create "$(xxd -p -c 99999 contract.polkavm)"
