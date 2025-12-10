@@ -16,11 +16,14 @@ codegen-units = 1
 
 [dependencies]
 polkavm-derive = { version = "0.19.0" }
+alloy-core = { version = "0.8.0", default-features = false, features = ["sol-types"] }
+picoalloc = "5.2.0"
 
 [dependencies.uapi]
 package = "pallet-revive-uapi"
-git = "https://github.com/paritytech/polkadot-sdk.git"
-rev = "38d2fa859861005157ccb249dca1378f015e0b06"
+path = "../polkadot-sdk/substrate/frame/revive/uapi"
+# git = "https://github.com/paritytech/polkadot-sdk.git"
+# rev = "38d2fa859861005157ccb249dca1378f015e0b06"
 default-features = false
 features = ["unstable-hostfn"]
 
