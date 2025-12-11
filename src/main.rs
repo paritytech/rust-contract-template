@@ -2,22 +2,29 @@
 #![no_std]
 
 use alloy_core::{
+    primitives::{Address, U256},
     sol,
-    sol_types::{SolCall, SolValue},
+    sol_types::{SolCall, SolError, SolEvent},
 };
-use uapi::{HostFn, HostFnImpl as api, ReturnFlags};
+use pallet_revive_uapi::{HostFn, HostFnImpl as api, ReturnFlags, StorageFlags};
 
 extern crate alloc;
 use alloc::vec;
 
-#[global_allocator]
-static mut ALLOC: picoalloc::Mutex<picoalloc::Allocator<picoalloc::ArrayPointer<1024>>> = {
-    static mut ARRAY: picoalloc::Array<1024> = picoalloc::Array([0u8; 1024]);
+sol!("../contracts/MyToken.sol");
+use crate::MyToken::transferCall;
 
-    picoalloc::Mutex::new(picoalloc::Allocator::new(unsafe {
-        picoalloc::ArrayPointer::new(&raw mut ARRAY)
-    }))
-};
+#[global_allocator]
+static ALLOCATOR: simplealloc::SimpleAlloc<1024> = simplealloc::SimpleAlloc::new();
+
+// #[global_allocator]
+// static mut ALLOC: picoalloc::Mutex<picoalloc::Allocator<picoalloc::ArrayPointer<1024>>> = {
+//     static mut ARRAY: picoalloc::Array<1024> = picoalloc::Array([0u8; 1024]);
+//
+//     picoalloc::Mutex::new(picoalloc::Allocator::new(unsafe {
+//         picoalloc::ArrayPointer::new(&raw mut ARRAY)
+//     }))
+// };
 
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
@@ -28,88 +35,145 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
     }
 }
 
+/// Storage key for totalSupply (slot 0)
+#[inline]
+fn total_supply_key() -> [u8; 32] {
+    [0u8; 32] // Slot 0
+}
+
+/// Helper function to compute storage key for balances[address]
+/// Storage slot for balances mapping is 1 (totalSupply is at slot 0)
+/// Follows Solidity convention: keccak256(leftPad32(key) ++ leftPad32(slot))
+fn balance_key(addr: &[u8; 20]) -> [u8; 32] {
+    let mut input = [0u8; 64]; // 32 bytes (padded address) + 32 bytes (slot)
+
+    // First 32 bytes: address left-padded to 32 bytes (12 zeros + 20 address bytes)
+    input[12..32].copy_from_slice(addr);
+
+    // Last 32 bytes: slot 1 for balances mapping (slot 0 is totalSupply)
+    input[63] = 1;
+
+    let mut key = [0u8; 32];
+    api::hash_keccak_256(&input, &mut key);
+    key
+}
+
+/// Get totalSupply from storage
+fn get_total_supply() -> U256 {
+    let key = total_supply_key();
+    let mut supply_bytes = vec![0u8; 32];
+    let mut supply_output = supply_bytes.as_mut_slice();
+
+    match api::get_storage(StorageFlags::empty(), &key, &mut supply_output) {
+        Ok(_) => U256::from_be_bytes::<32>(supply_output[0..32].try_into().unwrap()),
+        Err(_) => U256::ZERO,
+    }
+}
+
+/// Set totalSupply in storage
+#[inline]
+fn set_total_supply(amount: U256) {
+    let key = total_supply_key();
+    api::set_storage(StorageFlags::empty(), &key, &amount.to_be_bytes::<32>());
+}
+
+/// Get the balance for a given address from storage
+#[inline]
+fn get_balance(addr: &[u8; 20]) -> U256 {
+    let key = balance_key(addr);
+    let mut balance_bytes = vec![0u8; 32];
+    let mut balance_output = balance_bytes.as_mut_slice();
+
+    match api::get_storage(StorageFlags::empty(), &key, &mut balance_output) {
+        Ok(_) => U256::from_be_bytes::<32>(balance_output[0..32].try_into().unwrap()),
+        Err(_) => U256::ZERO,
+    }
+}
+
+/// Set the balance for a given address in storage
+#[inline]
+fn set_balance(addr: &[u8; 20], amount: U256) {
+    let key = balance_key(addr);
+    api::set_storage(StorageFlags::empty(), &key, &amount.to_be_bytes::<32>());
+}
+
+/// Emit a Transfer event
+#[inline]
+fn emit_transfer(from: Address, to: Address, value: U256) {
+    let event = MyToken::Transfer { from, to, value };
+    let topics = [
+        MyToken::Transfer::SIGNATURE_HASH.0,
+        event.from.into_word().0,
+        event.to.into_word().0,
+    ];
+    let data = event.value.to_be_bytes::<32>();
+    api::deposit_event(&topics, &data);
+}
+
+/// Revert with an InsufficientBalance error
+#[inline]
+fn revert_insufficient_balance() -> ! {
+    let error = MyToken::InsufficientBalance {};
+    let encoded_error = <MyToken::InsufficientBalance as SolError>::abi_encode(&error);
+    api::return_value(ReturnFlags::REVERT, &encoded_error);
+}
+
+/// Get the caller's address
+#[inline]
+fn get_caller() -> [u8; 20] {
+    let mut caller = [0u8; 20];
+    api::caller(&mut caller);
+    caller
+}
+
 /// This is the constructor which is called once per contract.
 #[no_mangle]
 #[polkavm_derive::polkavm_export]
 pub extern "C" fn deploy() {}
 
-// The contract use the following interface
-sol!(
-    interface IRustContract {
-        function fibonacci(uint32) external pure returns (uint32);
-        function extcodecopyOp(
-        address account,
-        uint256 offset,
-        uint256 size
-    ) public pure returns (bytes memory code);
-
-    }
-);
-
-/// Decode input using the sol! macro
-fn decode_input() -> u32 {
-    let call_data_len = api::call_data_size();
-    let mut call_data = vec![0u8; call_data_len as usize];
-    api::call_data_copy(&mut call_data, 0);
-
-    // Decode the input using the generated struct
-    let decoded =
-        IRustContract::fibonacciCall::abi_decode(&call_data, true).expect("Failed to decode input");
-
-    decoded._0
-}
-
-/// Encode output
-fn encode_output(result: u32) -> vec::Vec<u8> {
-    result.abi_encode()
-}
-
-#[allow(dead_code)]
-fn decode_input_manual() -> u32 {
-    // function fibonacci(uint32) external pure returns (uint32);
-
-    // ❯ cast calldata "fibonnaci(uint) view returns(uint)" "42" | xxd -r -p | xxd -c 32 -g 1
-    //00000000: 50 7a 10 34 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-    //00000020: 00 00 00 2a
-
-    // The input is abi encoded as follows:
-    // - 4 byte selector
-    // - 32 byte padded integer
-
-    // the actual 4 byte integer is stored at offset 32
-    let mut input = [0u8; 4];
-    api::call_data_copy(&mut input, 32);
-
-    u32::from_be_bytes(input)
-}
-
-#[allow(dead_code)]
-fn encode_output_manual(result: u32) -> [u8; 32] {
-    // pad the result to 32 byte
-    let mut output = [0u8; 32];
-    output[28..].copy_from_slice(&result.to_be_bytes());
-    output
-}
-
 /// This is the regular entry point when the contract is called.
 #[no_mangle]
 #[polkavm_derive::polkavm_export]
 pub extern "C" fn call() {
-    // Use the new sol! macro approach
-    let n = decode_input();
-    let result = fibonacci(n);
-    let encoded_output = encode_output(result);
+    let call_data_len = api::call_data_size();
+    let mut call_data = vec![0u8; call_data_len as usize];
+    api::call_data_copy(&mut call_data, 0);
 
-    // Return the encoded output
-    api::return_value(ReturnFlags::empty(), &encoded_output);
-}
+    let selector: [u8; 4] = call_data[0..4].try_into().unwrap();
 
-fn fibonacci(n: u32) -> u32 {
-    if n == 0 {
-        0
-    } else if n == 1 {
-        1
-    } else {
-        fibonacci(n - 1) + fibonacci(n - 2)
+    match selector {
+        MyToken::transferCall::SELECTOR => {
+            let transferCall { to, amount } = MyToken::transferCall::abi_decode(&call_data, true)
+                .expect("Failed to decode transfer call");
+
+            let caller = get_caller();
+            let sender_balance = get_balance(&caller);
+
+            if sender_balance < amount {
+                revert_insufficient_balance();
+            }
+
+            let new_sender_balance = sender_balance - amount;
+
+            let recipient_balance = get_balance(&to.into_array());
+            let new_recipient_balance = recipient_balance + amount;
+
+            set_balance(&caller, new_sender_balance);
+            set_balance(&to.into_array(), new_recipient_balance);
+            emit_transfer(Address::from(caller), to, amount);
+        }
+        MyToken::mintCall::SELECTOR => {
+            let MyToken::mintCall { to, amount } = MyToken::mintCall::abi_decode(&call_data, true)
+                .expect("Failed to decode mint call");
+
+            let new_recipient_balance = get_balance(&to.into_array()).saturating_add(amount);
+            set_balance(&to.0 .0, new_recipient_balance);
+
+            let new_supply = get_total_supply().saturating_add(amount);
+            set_total_supply(new_supply);
+
+            emit_transfer(Address::ZERO, to, amount);
+        }
+        _ => panic!("Unknown function selector"),
     }
 }
