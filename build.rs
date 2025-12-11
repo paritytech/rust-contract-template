@@ -11,26 +11,24 @@ fn main() -> Result<()> {
     let manifest_dir: PathBuf = env::var("CARGO_MANIFEST_DIR")?.into();
     let out_dir: PathBuf = env::var("OUT_DIR")?.into();
 
-    // Rerun if contract source changes
-    println!("cargo::rerun-if-changed=src/main.rs");
+    // Rerun if contract sources change
+    println!("cargo::rerun-if-changed=src/contract_with_alloc.rs");
+    println!("cargo::rerun-if-changed=src/contract_no_alloc.rs");
 
-    // Build the contract to RISC-V ELF
-    let build_dir = out_dir.join("pvm-build");
-    fs::create_dir_all(&build_dir)?;
+    invoke_build(&manifest_dir, &out_dir, "contract_with_alloc")?;
+    let elf_path_with_alloc =
+        out_dir.join("target/riscv64emac-unknown-none-polkavm/release/contract_with_alloc");
+    link_to_polkavm(&elf_path_with_alloc, "contract_with_alloc.polkavm")?;
 
-    invoke_build(&manifest_dir, &build_dir)?;
-
-    // Link ELF to PolkaVM bytecode
-    let elf_path = build_dir.join("target/riscv64emac-unknown-none-polkavm/release/contract");
-
-    link_to_polkavm(&elf_path)?;
+    invoke_build(&manifest_dir, &out_dir, "contract_no_alloc")?;
+    let elf_path_no_alloc =
+        out_dir.join("target/riscv64emac-unknown-none-polkavm/release/contract_no_alloc");
+    link_to_polkavm(&elf_path_no_alloc, "contract_no_alloc.polkavm")?;
 
     Ok(())
 }
 
-fn invoke_build(manifest_dir: &PathBuf, build_dir: &PathBuf) -> Result<()> {
-    let encoded_rustflags = ["-Dwarnings"].join("\x1f");
-
+fn invoke_build(manifest_dir: &PathBuf, build_dir: &PathBuf, bin_name: &str) -> Result<()> {
     let mut args = polkavm_linker::TargetJsonArgs::default();
     args.is_64_bit = true;
 
@@ -39,7 +37,6 @@ fn invoke_build(manifest_dir: &PathBuf, build_dir: &PathBuf) -> Result<()> {
         .current_dir(manifest_dir)
         .env_clear()
         .env("PATH", env::var("PATH").unwrap_or_default())
-        .env("CARGO_ENCODED_RUSTFLAGS", encoded_rustflags)
         .env("CARGO_TARGET_DIR", build_dir.join("target"))
         .env("RUSTUP_HOME", env::var("RUSTUP_HOME").unwrap_or_default())
         .env("RUSTC_BOOTSTRAP", "1")
@@ -50,6 +47,8 @@ fn invoke_build(manifest_dir: &PathBuf, build_dir: &PathBuf) -> Result<()> {
             "-Zbuild-std=core,alloc",
             "-Zbuild-std-features=panic_immediate_abort",
         ])
+        .arg("--bin")
+        .arg(bin_name)
         .arg("--target")
         .arg(polkavm_linker::target_json_path(args).map_err(|e| anyhow::anyhow!(e))?);
 
@@ -60,13 +59,13 @@ fn invoke_build(manifest_dir: &PathBuf, build_dir: &PathBuf) -> Result<()> {
     if !build_res.status.success() {
         let stderr = String::from_utf8_lossy(&build_res.stderr);
         eprintln!("{}", stderr);
-        anyhow::bail!("Failed to build contract");
+        anyhow::bail!("Failed to build contract {}", bin_name);
     }
 
     Ok(())
 }
 
-fn link_to_polkavm(elf_path: &PathBuf) -> Result<()> {
+fn link_to_polkavm(elf_path: &PathBuf, output_filename: &str) -> Result<()> {
     let mut config = polkavm_linker::Config::default();
     config.set_strip(true);
     config.set_optimize(true);
@@ -81,8 +80,8 @@ fn link_to_polkavm(elf_path: &PathBuf) -> Result<()> {
     )
     .map_err(|err| anyhow::anyhow!("Failed to link PolkaVM program: {}", err))?;
 
-    let output_path = "./contract.polkavm";
-    fs::write(output_path, linked)
+    let output_path = format!("./{}", output_filename);
+    fs::write(&output_path, linked)
         .with_context(|| format!("Failed to write PolkaVM bytecode to {:?}", output_path))?;
 
     Ok(())

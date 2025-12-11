@@ -6,8 +6,12 @@ publish = false
 rust-version = "1.84"
 
 [[bin]]
-name = "contract"
-path = "src/main.rs"
+name = "contract_with_alloc"
+path = "src/contract_with_alloc.rs"
+
+[[bin]]
+name = "contract_no_alloc"
+path = "src/contract_no_alloc.rs"
 
 [profile.release]
 opt-level = 3
@@ -20,6 +24,7 @@ alloy-core = { version = "0.8.0", default-features = false, features = ["sol-typ
 simplealloc = { version = "0.0.1", git = "https://github.com/paritytech/polkavm.git" }
 # picoalloc = "5.2.0"
 pallet-revive-uapi = { version = "0.9.0", default-features = false }
+sp-core = { version = "38", default-features = false }
 
 [build-dependencies]
 polkavm-linker = "0.30.0"
